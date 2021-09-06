@@ -18,10 +18,12 @@ class WeiboPersonalInfoSpider:
         self.weibo_link = "https://m.weibo.cn/api/container/getIndex?type=uid&value="
 
         # 打开数据库连接
-        self.db = pymysql.connect(host="xxx", user="xxx",
-                                  password="xxx", db="xxx")
+        self.db = pymysql.connect(host="localhost", user="root", password="lss123123", db="weibo")
         # 使用 cursor() 方法创建一个游标对象 cursor
         self.cursor = self.db.cursor()
+
+        # 初始化微博数量
+        self.weibo_total_number = 0
 
     def get_html_data(self, user_id):
         # 实际请求Url
@@ -64,7 +66,7 @@ class WeiboPersonalInfoSpider:
             result["user_id"], result["user_name"], result["gender"], result["verified_reason"],
             result["description"], result["container_id"], result["domain"],
             datetime.datetime.now())
-        print("Insert user_details SQL: ", sql)
+        # print("Insert user_details SQL: ", sql)
         try:
             # 使用 execute()  方法执行 SQL
             self.cursor.execute(sql)
@@ -75,8 +77,7 @@ class WeiboPersonalInfoSpider:
             print("插入数据库异常！！！")
             self.db.rollback()
 
-    @staticmethod
-    def get_user_follow_info(user_id, res):
+    def get_user_follow_info(self, user_id, res):
         item = dict()
         res_data_json = json.loads(res).get("data")
         # print(res_json)
@@ -88,6 +89,7 @@ class WeiboPersonalInfoSpider:
         item["follow_count"] = res_data_json["userInfo"]["follow_count"]
         # 微博总数
         item["statuses_count"] = res_data_json["userInfo"]["statuses_count"]
+        self.weibo_total_number = item["statuses_count"]
         return item
 
     def insert_into_follow_details_db(self, result):
@@ -98,7 +100,7 @@ class WeiboPersonalInfoSpider:
         """ % (
             result["user_id"], result["followers_count"],
             result["follow_count"], result["statuses_count"], datetime.datetime.now())
-        print("Insert follow_details SQL: ", sql)
+        # print("Insert follow_details SQL: ", sql)
         try:
             # 使用 execute()  方法执行 SQL
             self.cursor.execute(sql)
@@ -111,72 +113,86 @@ class WeiboPersonalInfoSpider:
 
     def crawl_weibo(self, user_id, container_id):
         page_number = 1
-        request_url = self.weibo_link + str(user_id) + "&containerid=" + str(container_id) + "&page=" + str(page_number)
-        result = requests.get(request_url, headers={'User-Agent': self.user_agent}).text
-        print("========= 正在抓取第" + str(page_number) + "页 =========")
-        # print(result)
+        weibo_number = 0
         time.sleep(3)
-        result_data_json = json.loads(result).get("data")
-        cards = result_data_json.get("cards")
-        cards_group = list()
-        for card_number in range(len(cards)):
-            # print(cards[card_number])
-            print("========= 正在抓取第" + str(page_number) + "页第" + str(card_number + 1) + "条微博 =========")
-            card_detail = {
-                "user_id": "",
-                "item_id": "",
-                "scheme": "",
-                "source": "",
-                "reposts_count": "",
-                "comments_count": "",
-                "attitudes_count": "",
-                "text": "",
-                "image_content": "",
-                "large_image_url": "",
-                "weibo_created_at": "",
-            }
-            card_data_json = cards[card_number]
-            # 微博用户ID
-            card_detail["user_id"] = user_id
-            # 微博ID
-            card_detail["item_id"] = card_data_json.get("itemid")
-            # 微博链接
-            card_detail["scheme"] = card_data_json.get("scheme")
 
-            mblog = card_data_json.get("mblog")
-            # 微博发布平台（手机等）
-            card_detail["source"] = mblog.get("source")
-            # 微博转发数
-            card_detail["reposts_count"] = str(mblog.get("reposts_count"))
-            # 微博评论数
-            card_detail["comments_count"] = str(mblog.get("comments_count"))
-            # 微博点赞数
-            card_detail["attitudes_count"] = str(mblog.get("attitudes_count"))
-            # 微博内容
-            card_detail["text"] = str(mblog.get("text")).replace('"', "'")
-            # 微博发布时间
-            card_detail["weibo_created_at"] = str(mblog.get("created_at"))
+        while True:
+            print("weibo_number: ", weibo_number)
+            print("weibo_total_number: ", self.weibo_total_number)
+            if weibo_number > self.weibo_total_number:
+                break
+            request_url = self.weibo_link + str(user_id) + "&containerid=" + str(container_id) + "&page=" + str(
+                page_number)
+            result = requests.get(request_url, headers={'User-Agent': self.user_agent}).text
+            print("========= 正在抓取第" + str(page_number) + "页 =========")
+            # print(result)
+            time.sleep(3)
+            result_data_json = json.loads(result).get("data")
+            cards = result_data_json.get("cards")
+            cards_group = list()
+            if len(cards) <= 0:
+                break
+            for card_number in range(len(cards)):
+                weibo_number += 1
+                # print(cards[card_number])
+                print("========= 正在抓取第" + str(page_number) + "页第" + str(card_number + 1) + "条微博 =========")
+                card_detail = {
+                    "user_id": "",
+                    "item_id": "",
+                    "scheme": "",
+                    "source": "",
+                    "reposts_count": "",
+                    "comments_count": "",
+                    "attitudes_count": "",
+                    "text": "",
+                    "image_content": "",
+                    "large_image_url": "",
+                    "weibo_created_at": "",
+                }
+                card_data_json = cards[card_number]
+                # 微博用户ID
+                card_detail["user_id"] = user_id
+                # 微博ID
+                card_detail["item_id"] = card_data_json.get("itemid")
+                # 微博链接
+                card_detail["scheme"] = card_data_json.get("scheme")
 
-            if mblog.get("pics"):
-                large_image_url = mblog.get("original_pic")
-                print(large_image_url)
-                print(mblog.get("pics"))
-                # image_content = requests.get(large_image_url, headers={'User-Agent': self.user_agent}).content
-                card_detail["image_content"] = "image_content"  # 防止被数据库转码
-                card_detail["large_image_url"] = large_image_url
-                # print(len(card_detail['image_content']))
+                mblog = card_data_json.get("mblog")
+                # 微博发布平台（手机等）
+                card_detail["source"] = mblog.get("source")
+                # 微博转发数
+                card_detail["reposts_count"] = str(mblog.get("reposts_count"))
+                # 微博评论数
+                card_detail["comments_count"] = str(mblog.get("comments_count"))
+                # 微博点赞数
+                card_detail["attitudes_count"] = str(mblog.get("attitudes_count"))
+                # 微博内容
+                card_detail["text"] = str(mblog.get("text")).replace('"', "'")
+                # 微博发布时间
+                card_detail["weibo_created_at"] = str(mblog.get("created_at"))
 
-            print(card_detail)
-            card_set = (card_detail["user_id"], card_detail["item_id"], card_detail["scheme"], card_detail["source"],
-                        card_detail["reposts_count"], card_detail["comments_count"], card_detail["attitudes_count"],
-                        card_detail["text"], card_detail["image_content"], card_detail["large_image_url"],
-                        card_detail["weibo_created_at"], datetime.datetime.now())
+                if mblog.get("pics"):
+                    large_image_url = mblog.get("original_pic")
+                    print(large_image_url)
+                    # print(mblog.get("pics"))
+                    # image_content = requests.get(large_image_url, headers={'User-Agent': self.user_agent}).content
+                    card_detail["image_content"] = ""  # 防止被数据库转码
+                    card_detail["large_image_url"] = large_image_url
+                    # print(len(card_detail['image_content']))
 
-            # print("card_set: ", card_set)
+                # print(card_detail)
+                card_set = (
+                    card_detail["user_id"], card_detail["item_id"], card_detail["scheme"], card_detail["source"],
+                    card_detail["reposts_count"], card_detail["comments_count"], card_detail["attitudes_count"],
+                    card_detail["text"], card_detail["image_content"], card_detail["large_image_url"],
+                    card_detail["weibo_created_at"], datetime.datetime.now())
 
-            cards_group.append(card_set)
-        print("cards_group: ", cards_group)
-        self.insert_into_weibo_details_db(cards_group)
+                # print("card_set: ", card_set)
+
+                cards_group.append(card_set)
+            # print("cards_group: ", cards_group)
+            page_number += 1
+            self.insert_into_weibo_details_db(cards_group)
 
     def insert_into_weibo_details_db(self, cards_group):
         print("========= insert into weibo_details db =========")
@@ -184,8 +200,8 @@ class WeiboPersonalInfoSpider:
         sql = """
         INSERT INTO `weibo_details` (`user_id`, `item_id`, `scheme`, `source`, `reposts_count`, `comments_count`, `attitudes_count`, `text`, `image_content`, `large_image_url`, `weibo_created_at`, `created_date`) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         """
-        print("Insert weibo_details SQL: ", sql)
-        print("cards_group: ", cards_group)
+        # print("Insert weibo_details SQL: ", sql)
+        # print("cards_group: ", cards_group)
         try:
             # 使用 execute() / executemany() 方法执行 SQL
             self.cursor.executemany(sql, cards_group)
@@ -227,6 +243,7 @@ if __name__ == '__main__':
 
     try:
         for user_id in userid_list:
+            weibo.weibo_total_number = 0
             weibo.run(user_id)
     except Exception:
         pass
