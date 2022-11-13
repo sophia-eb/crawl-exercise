@@ -18,7 +18,7 @@ class WeiboPersonalInfoSpider:
         self.weibo_link = "https://m.weibo.cn/api/container/getIndex?type=uid&value="
 
         # 打开数据库连接
-        self.db = pymysql.connect(host="localhost", user="root", password="lss123123", db="weibo")
+        self.db = pymysql.connect(host="localhost", user="root", password="", db="weibo")
         # 使用 cursor() 方法创建一个游标对象 cursor
         self.cursor = self.db.cursor()
 
@@ -158,6 +158,8 @@ class WeiboPersonalInfoSpider:
                 card_detail["scheme"] = card_data_json.get("scheme")
 
                 mblog = card_data_json.get("mblog")
+                if mblog is None:
+                    continue
                 # 微博发布平台（手机等）
                 card_detail["source"] = mblog.get("source")
                 # 微博转发数
