@@ -80,7 +80,7 @@ class WeiboPersonalInfoSpider:
     def get_user_follow_info(self, user_id, res):
         item = dict()
         res_data_json = json.loads(res).get("data")
-        # print(res_json)
+        print("res_json: ", res_data_json["userInfo"])
         # 微博用户ID
         item["user_id"] = user_id
         # 该用户的粉丝数
@@ -107,8 +107,9 @@ class WeiboPersonalInfoSpider:
             # 提交，不然无法保存新建或者修改的数据
             self.db.commit()
             print(self.cursor.rowcount, "record inserted.")
-        except Exception:
+        except Exception as e:
             print("插入数据库异常！！！")
+            print("Error: ", e)
             self.db.rollback()
 
     def crawl_weibo(self, user_id, container_id):
@@ -255,7 +256,7 @@ if __name__ == '__main__':
     # 2882733894, 3962982466, 1808764472, 6203188939,
     # 2620811727, 3925308009, 5080118124, 5985666104,
     # 1223178222, 5492443184, 1353112775]
-    userid_list = [5080118124]
+    userid_list = [5985666104]
 
     try:
         for user_id in userid_list:
