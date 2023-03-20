@@ -6,7 +6,7 @@
 > 
 > @modified: 2023-03-20
 
-## weibo-data-analysis folder
+## weibo_data_analysis folder
 
 微博数据抓取以及数据分析（已添加IP属地），包括：
 - 用户ID，昵称，性别，认证信息，微博说明
@@ -17,6 +17,6 @@
 #### 步骤
 1. 运行 `MySQL/weibo.sql` 中的SQL语句，创建本地数据结构
 2. 安装 `requirements.txt` 中的所有库
-3. 切入 `eibo-data-analysis` 路径 
+3. 切入 `weibo_data_analysis` 路径 
 4. 填写 `weibo_personal_info_spider.py` 和 `update_region_for_each_weibo.py` 的 `__init__` 中的本地数据库配置 
 5. 运行 `__name__` 函数即可
