@@ -49,3 +49,4 @@ CREATE TABLE IF NOT EXISTS `weibo_details` (
 SELECT * FROM user_details;
 SELECT * FROM follow_details;
 SELECT * FROM weibo_details;
+ALTER TABLE weibo_details ADD COLUMN region_name CHAR(255) AFTER source;
