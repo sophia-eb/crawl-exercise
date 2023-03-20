@@ -141,6 +141,7 @@ class WeiboPersonalInfoSpider:
                     "item_id": "",
                     "scheme": "",
                     "source": "",
+                    "region_name": "",
                     "reposts_count": "",
                     "comments_count": "",
                     "attitudes_count": "",
@@ -162,6 +163,8 @@ class WeiboPersonalInfoSpider:
                     continue
                 # 微博发布平台（手机等）
                 card_detail["source"] = mblog.get("source")
+                # 微博发布地点
+                card_detail["region_name"] = mblog.get("region_name")
                 # 微博转发数
                 card_detail["reposts_count"] = str(mblog.get("reposts_count"))
                 # 微博评论数
@@ -184,9 +187,17 @@ class WeiboPersonalInfoSpider:
 
                 # print(card_detail)
                 card_set = (
-                    card_detail["user_id"], card_detail["item_id"], card_detail["scheme"], card_detail["source"],
-                    card_detail["reposts_count"], card_detail["comments_count"], card_detail["attitudes_count"],
-                    card_detail["text"], card_detail["image_content"], card_detail["large_image_url"],
+                    card_detail["user_id"],
+                    card_detail["item_id"],
+                    card_detail["scheme"],
+                    card_detail["source"],
+                    card_detail["region_name"],
+                    card_detail["reposts_count"],
+                    card_detail["comments_count"],
+                    card_detail["attitudes_count"],
+                    card_detail["text"],
+                    card_detail["image_content"],
+                    card_detail["large_image_url"],
                     card_detail["weibo_created_at"], datetime.datetime.now())
 
                 # print("card_set: ", card_set)
@@ -200,7 +211,7 @@ class WeiboPersonalInfoSpider:
         print("========= insert into weibo_details db =========")
 
         sql = """
-        INSERT INTO `weibo_details` (`user_id`, `item_id`, `scheme`, `source`, `reposts_count`, `comments_count`, `attitudes_count`, `text`, `image_content`, `large_image_url`, `weibo_created_at`, `created_date`) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+        INSERT INTO `weibo_details` (`user_id`, `item_id`, `scheme`, `source`, `region_name`, `reposts_count`, `comments_count`, `attitudes_count`, `text`, `image_content`, `large_image_url`, `weibo_created_at`, `created_date`) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         """
         # print("Insert weibo_details SQL: ", sql)
         # print("cards_group: ", cards_group)
@@ -210,7 +221,7 @@ class WeiboPersonalInfoSpider:
         except Exception as e:
             print("插入数据库异常！！！")
             print("Error: ", e)
-            self.db.rollback()
+            # self.db.rollback()
         else:
             # 提交，不然无法保存新建或者修改的数据
             self.db.commit()
