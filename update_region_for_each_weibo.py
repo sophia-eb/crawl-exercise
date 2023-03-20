@@ -62,6 +62,21 @@ class UpdateRegionForWeibo:
 
         return item
 
+    def get_user_follow_info(self, user_id, res):
+        item = dict()
+        res_data_json = json.loads(res).get("data")
+        # print(res_json)
+        # 微博用户ID
+        item["user_id"] = user_id
+        # 该用户的粉丝数
+        item["followers_count"] = res_data_json["userInfo"]["followers_count"]
+        # 该用户的关注数
+        item["follow_count"] = res_data_json["userInfo"]["follow_count"]
+        # 微博总数
+        item["statuses_count"] = res_data_json["userInfo"]["statuses_count"]
+        self.weibo_total_number = item["statuses_count"]
+        return item
+
     def crawl_weibo(self, user_id, container_id):
         page_number = 1
         weibo_number = 0
@@ -109,7 +124,7 @@ class UpdateRegionForWeibo:
 
                 self.insert_into_weibo_details_db(card_detail["scheme"], card_detail["region_name"])
 
-            page_number += 1
+        page_number += 1
 
     def insert_into_weibo_details_db(self, scheme, region_name):
         print("========= insert into weibo_details db =========")
@@ -142,6 +157,10 @@ class UpdateRegionForWeibo:
         try:
             user_info = self.parse_user_info(user_id, res)
             print("user_info: ", user_info)
+
+            user_follow_info = self.get_user_follow_info(user_id, res)
+            print("user_follow_info: ", user_follow_info)
+
             self.crawl_weibo(user_id, user_info["container_id"])
         except Exception as e:
             print("抓取数据格式异常！！！")
@@ -150,10 +169,10 @@ class UpdateRegionForWeibo:
 
 if __name__ == '__main__':
     weibo = UpdateRegionForWeibo()
-    # 王俊凯，蒲熠星，文韬，齐思钧，周峻纬，唐九洲，胡歌，王一博, 张子枫
-    userid_list = [2609400635, 2882733894, 3962982466, 1808764472, 6203188939, 2620811727, 1223178222, 5492443184,
-                   1353112775]
-    # userid_list = [2609400635]
+    # 王俊凯，蒲熠星，文韬，齐思钧，周峻纬，唐九洲，何运晨，胡歌，王一博, 张子枫
+    # userid_list = [2609400635, 2882733894, 3962982466, 1808764472,
+    # 6203188939, 2620811727, 3925308009, 1223178222, 5492443184, 1353112775]
+    userid_list = [1353112775]
 
     try:
         for user_id in userid_list:
