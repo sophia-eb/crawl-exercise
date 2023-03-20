@@ -1,7 +1,5 @@
 # -*- coding:utf-8 -*-
-# import base64
 import time
-import datetime
 import json
 import pymysql
 import requests
