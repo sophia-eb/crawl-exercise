@@ -141,10 +141,6 @@ class UpdateRegionForWeibo:
             print("插入数据库异常！！！")
             print("Error: ", e)
             self.db.rollback()
-        else:
-            # 提交，不然无法保存新建或者修改的数据
-            self.db.commit()
-            print(self.cursor.rowcount, "record inserted.")
 
     def run(self, *args):
         user_id = args[0]
