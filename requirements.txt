@@ -2,3 +2,6 @@ datetime
 requests
 fake-useragent
 PyMySQL
+
+# DecryptLogin: APIs for loginning some websites by using requests.
+DecryptLogin
