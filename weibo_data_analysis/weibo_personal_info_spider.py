@@ -45,7 +45,10 @@ class WeiboPersonalInfoSpider:
         # 性别
         item["gender"] = str(res_data_json["userInfo"]["gender"])
         # 认证信息
-        item["verified_reason"] = str(res_data_json["userInfo"]["verified_reason"])
+        if res_data_json["userInfo"]["verified_type"] == -1:
+            item["verified_reason"] = str(-1)
+        else:
+            item["verified_reason"] = str(res_data_json["userInfo"]["verified_reason"])
         # 微博说明
         item["description"] = str(res_data_json["userInfo"]["description"])
         # 读取微博账号微博的Domain值
@@ -235,6 +238,7 @@ class WeiboPersonalInfoSpider:
             print("没有数据...")
             return
         try:
+            print("res: ", res)
             user_info = self.parse_user_info(user_id, res)
             print("user_info: ", user_info)
             self.insert_into_user_details_db(user_info)
