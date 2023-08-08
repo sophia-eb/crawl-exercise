@@ -8,7 +8,7 @@ import requests
 from fake_useragent import UserAgent
 
 """
-每次抓取1页10条
+每次抓取1页10条，适合第一次抓取总量微博
 如果1页中出现已经存在的数据，该页数据会抓取失败
 """
 
