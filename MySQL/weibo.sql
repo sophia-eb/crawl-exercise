@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS `follow_details` (
    `follow_count` INT NOT NULL,
    `statuses_count` INT NOT NULL,
    `created_date` TIMESTAMP,
-   PRIMARY KEY ( `id` )
+   PRIMARY KEY ( `id` ),
+   UNIQUE KEY `uidx_followers_count` (`followers_count`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 DROP TABLE weibo_details;
@@ -32,7 +33,7 @@ CREATE TABLE IF NOT EXISTS `weibo_details` (
    `id` INT UNSIGNED AUTO_INCREMENT,
    `user_id` BIGINT NOT NULL,
    `item_id` CHAR(255) NOT NULL,
-   `scheme` CHAR(255) NOT NULL,
+   `scheme` VARCHAR(500) NOT NULL,
    `source` CHAR(50) NOT NULL,
    `reposts_count` CHAR(50) NOT NULL,
    `comments_count` CHAR(50) NOT NULL,
